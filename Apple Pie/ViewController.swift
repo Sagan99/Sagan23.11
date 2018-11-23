@@ -36,19 +36,31 @@ class ViewController: UIViewController {
     }
     
     func newRound() {
-        let word = listOfWords.removeFirst()
-        game = Game(word: word, incorrectMovesRemaining: incorrectMovesAllowed)
+        let word = listOfWords.removeFirst().lowercased()
+        game = Game(word: word, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
         updateUI()
     }
     
     func updateUI() {
         let name = "Tree \(game.incorrectMovesRemaining)"
         treeImageView.image = UIImage(named: name)
+        
+        var letters = [String]()
+        let formattedWord = game.formattedWord.uppercased()
+        
+        for letter in formattedWord {
+            letters.append(String(letter))
+        }
+        let wordWithSpacing = letters.joined(separator: " ")
+        correctWordLabel.text = wordWithSpacing
         scoreLabel.text = "Выигрыши: \(totalWins),  Проигрыши: \(totalLosses)"
     }
 
     @IBAction func buttonPressed(_ sender: UIButton) {
         sender.isEnabled = false
+        let letter = sender.title(for: .normal)!.lowercased()
+        game.playerGuessed(letter: Character(letter))
+        updateUI()
     }
     
 }
