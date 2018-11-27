@@ -15,20 +15,28 @@ class ViewController: UIViewController {
     @IBOutlet weak var scoreLabel: UILabel!
     
     var listOfWords = [
-        "Арбуз",
-        "Банан",
-        "Гномик",
-        "Домик",
-        "Ель",
-        "Ёж",
-        "Железная дорога",
+        "арбуз",
+        "банан",
+        "гномик",
+        "домик",
+        "ель",
+        "ёж",
+        "дорога",
         ]
     
     let incorrectMovesAllowed = 7
-    var totalWins = 0
-    var totalLosses = 0
+    var totalWins = 0 {
+        didSet {
+            newRound()
+        }
+    }
+    var totalLosses = 0 {
+        didSet {
+            newRound()
+        }
+    }
     
-    var game: Game!
+    var currentGame: Game!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,17 +44,29 @@ class ViewController: UIViewController {
     }
     
     func newRound() {
-        let word = listOfWords.removeFirst().lowercased()
-        game = Game(word: word, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
-        updateUI()
+        if !listOfWords.isEmpty {
+            let newWord = listOfWords.removeFirst()
+            currentGame = Game(word: newWord, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
+            enableLetterButtons(true)
+            updateUI()
+        } else {
+            enableLetterButtons(false)
+        }
+    }
+    
+    func enableLetterButtons(_ enable: Bool) {
+        for button in letterButtons {
+            button.isEnabled = enable
+        }
     }
     
     func updateUI() {
-        let name = "Tree \(game.incorrectMovesRemaining)"
+        
+        let name = "Tree \(currentGame.incorrectMovesRemaining)"
         treeImageView.image = UIImage(named: name)
         
         var letters = [String]()
-        let formattedWord = game.formattedWord.uppercased()
+        let formattedWord = currentGame.formattedWord.uppercased()
         
         for letter in formattedWord {
             letters.append(String(letter))
@@ -56,12 +76,26 @@ class ViewController: UIViewController {
         scoreLabel.text = "Выигрыши: \(totalWins),  Проигрыши: \(totalLosses)"
     }
 
-    @IBAction func buttonPressed(_ sender: UIButton) {
+    @IBAction func buttonTrapped(_ sender: UIButton) {
         sender.isEnabled = false
-        let letter = sender.title(for: .normal)!.lowercased()
-        game.playerGuessed(letter: Character(letter))
-        updateUI()
+        let letterString = sender.title(for: .normal)!
+        let letter = Character(letterString.lowercased())
+        currentGame.playerGuessed(letter: letter)
+        updateGameState()
+    }
+    
+    func updateGameState() {
+        if currentGame.incorrectMovesRemaining == 0 {
+            totalLosses += 1
+        } else if currentGame.word == currentGame.formattedWord {
+            totalWins += 1
+        } else {
+            updateUI()
+        }
+        
+        
     }
     
 }
+
 
